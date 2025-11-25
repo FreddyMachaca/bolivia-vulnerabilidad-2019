@@ -1,0 +1,15 @@
+pandas
+numpy
+matplotlib
+seaborn
+plotly
+scikit-learn
+geopandas
+folium
+dash
+dask
+pyarrow
+fastparquet
+scipy
+openpyxl
+xlrd
