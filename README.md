@@ -12,11 +12,11 @@ Este proyecto utiliza técnicas avanzadas de Big Data y Machine Learning para:
 - **Visualizar** datos geográficos interactivos
 - **Generar** reportes para toma de decisiones
 
-## 🗂 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```
 bolivia_vulnerabilidad/
-├── 📁 Base EH2019/           # Datos originales CSV (240+ MB)
+├── Base EH2019/           # Datos originales CSV (240+ MB)
 │   ├── EH2019_Persona/
 │   ├── EH2019_Vivienda/
 │   ├── EH2019_GastosAlimentarios/
@@ -24,11 +24,11 @@ bolivia_vulnerabilidad/
 │   ├── EH2019_Equipamiento/
 │   ├── EH2019_SeguridadAlimentaria/
 │   └── EH2019_Discriminacion/
-├── 📁 BigData/              # Análisis y procesamiento
+├── BigData/              # Análisis y procesamiento
 │   ├── vulnerabilidad_analyzer.py
 │   ├── api_server.py
 │   └── requirements.txt
-└── 📁 Frontend/             # Dashboard interactivo
+└── Frontend/             # Dashboard interactivo
     ├── src/
     │   ├── components/
     │   │   ├── DashboardGeneral.jsx
@@ -109,52 +109,52 @@ npm run preview
 
 ---
 
-## 🚨 Solución de problemas comunes
+## Solución de problemas comunes
 - **Error de CORS**: confirma que la API responde en `localhost:5000` y que `VITE_API_BASE_URL` coincide.
 - **CSV no encontrado**: revisa que las carpetas sigan la estructura de `Base EH2019` y que los archivos no estén comprimidos.
 - **Puerto ocupado**: cambia el puerto de Flask (`PORT` en `api_server.py`) y actualiza `VITE_API_BASE_URL`.
 - **Dependencias antiguas**: elimina `Frontend/node_modules` y ejecuta `npm install` nuevamente.
 - **Permisos en Linux**: usa `sudo npm install -g` si hay problemas con permisos globales de npm.
 
-## 📊 Características del Dashboard
+## Características del Dashboard
 
-### 🎯 Dashboard General
+### Dashboard General
 - Métricas clave de vulnerabilidad nacional
 - Distribución de hogares por nivel de riesgo
 - Gráficos de vulnerabilidad departamental
 - Resumen ejecutivo para tomadores de decisión
 
-### 🗺 Mapa Interactivo
+### Mapa Interactivo
 - Visualización geográfica de Bolivia
 - Capas temáticas (vulnerabilidad, ingresos, educación)
 - Información detallada por departamento
 - Recomendaciones específicas por región
 
-### 👥 Análisis por Clusters
+### Análisis por Clusters
 - 5 tipologías de hogares identificadas
 - Características sociodemográficas
 - Estrategias diferenciadas por cluster
 - Métricas de priorización
 
-### 📈 Comparación Departamental
+### Comparación Departamental
 - Ranking departamental completo
 - Análisis multidimensional
 - Indicadores de gestión
 - Cronograma de intervenciones
 
-### 💰 Indicadores Económicos
+### Indicadores Económicos
 - Evolución temporal de indicadores
 - Análisis de eficiencia presupuestaria
 - ROI estimado por intervención
 - Proyecciones financieras
 
-### 📄 Reporte de Vulnerabilidad
+### Reporte de Vulnerabilidad
 - Reporte ejecutivo completo
 - Plan de acción estratégico
 - Análisis de riesgo
 - Cronograma de implementación
 
-## 🧠 Metodología de Análisis
+## Metodología de Análisis
 
 ### Índice de Vulnerabilidad
 Combina múltiples dimensiones:
@@ -176,7 +176,7 @@ Utiliza algoritmos K-means para identificar:
 - Mapeo de coordenadas de capitales
 - Visualización con Leaflet/React
 
-## 📋 Endpoints de la API
+## Endpoints de la API
 
 ```
 GET /api/resumen-general              # Estadísticas nacionales
@@ -187,7 +187,7 @@ GET /api/comparacion-departamentos    # Rankings y comparaciones
 ```
 
 
-## 🛠 Tecnologías Utilizadas
+## Tecnologías Utilizadas
 
 ### Backend:
 - **Python**: Pandas, NumPy, Scikit-learn

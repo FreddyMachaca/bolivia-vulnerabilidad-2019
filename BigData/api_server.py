@@ -13,7 +13,55 @@ class DataProcessor:
         self.vulnerabilidad_data = None
         self.departamentos_data = None
         self.geojson_data = None
+        self.departamentos_lookup = {}
+        self.rangos_indicadores = None
         self.load_data()
+
+    def _build_departamentos_lookup(self):
+        if self.departamentos_data is None or self.departamentos_data.empty:
+            return {}
+
+        columnas = ['indice_vulnerabilidad', 'ingreso_per_capita', 'prop_alfabeta', 'num_personas']
+        disponibles = [c for c in columnas if c in self.departamentos_data.columns]
+        if not disponibles:
+            return {}
+
+        return self.departamentos_data.set_index('departamento')[disponibles].to_dict('index')
+
+    def _build_rangos_indicadores(self):
+        if self.departamentos_data is None or self.departamentos_data.empty:
+            return None
+
+        vuln_min = self.departamentos_data['indice_vulnerabilidad'].min()
+        vuln_max = self.departamentos_data['indice_vulnerabilidad'].max()
+        vuln_range = vuln_max - vuln_min
+
+        ingreso_min = self.departamentos_data['ingreso_per_capita'].min()
+        ingreso_max = self.departamentos_data['ingreso_per_capita'].max()
+        ingreso_range = ingreso_max - ingreso_min
+
+        alfa_min = self.departamentos_data['prop_alfabeta'].min()
+        alfa_max = self.departamentos_data['prop_alfabeta'].max()
+        alfa_range = alfa_max - alfa_min
+
+        return {
+            'vulnerabilidad': {
+                'muy_alto': vuln_min + vuln_range * 0.75,
+                'alto': vuln_min + vuln_range * 0.5,
+                'medio': vuln_min + vuln_range * 0.25,
+                'bajo': vuln_min
+            },
+            'ingreso_per_capita': {
+                'alto': ingreso_min + ingreso_range * 0.75,
+                'medio': ingreso_min + ingreso_range * 0.25,
+                'bajo': ingreso_min
+            },
+            'alfabetizacion': {
+                'alto': alfa_min + alfa_range * 0.75,
+                'medio': alfa_min + alfa_range * 0.25,
+                'bajo': alfa_min
+            }
+        }
     
     def load_data(self):
         try:
@@ -21,6 +69,8 @@ class DataProcessor:
                 self.vulnerabilidad_data = pd.read_csv('vulnerabilidad_hogares.csv')
             if os.path.exists('vulnerabilidad_departamentos.csv'):
                 self.departamentos_data = pd.read_csv('vulnerabilidad_departamentos.csv')
+                self.departamentos_lookup = self._build_departamentos_lookup()
+                self.rangos_indicadores = self._build_rangos_indicadores()
             
             # GeoJSON de Bolivia
             self.geojson_data = {
@@ -150,23 +200,26 @@ def geojson_bolivia():
     features_with_data = []
     
     for feature in processor.geojson_data['features']:
+        feature_copy = {
+            "type": feature['type'],
+            "properties": dict(feature['properties']),
+            "geometry": feature['geometry']
+        }
         dept_name = feature['properties']['departamento']
-        
-        if processor.departamentos_data is not None:
-            dept_data = processor.departamentos_data[
-                processor.departamentos_data['departamento'] == dept_name
-            ]
-            
-            if not dept_data.empty:
-                feature['properties'].update({
+
+        if processor.departamentos_lookup:
+            dept_data = processor.departamentos_lookup.get(dept_name)
+
+            if dept_data:
+                feature_copy['properties'].update({
                     'departamento': dept_name,
-                    'vulnerabilidad': float(dept_data.iloc[0]['indice_vulnerabilidad']),
-                    'ingreso_per_capita': float(dept_data.iloc[0]['ingreso_per_capita']),
-                    'alfabetizacion': float(dept_data.iloc[0]['prop_alfabeta'] * 100),
-                    'personas_promedio': float(dept_data.iloc[0]['num_personas'])
+                    'vulnerabilidad': float(dept_data.get('indice_vulnerabilidad', 0)),
+                    'ingreso_per_capita': float(dept_data.get('ingreso_per_capita', 0)),
+                    'alfabetizacion': float(dept_data.get('prop_alfabeta', 0) * 100),
+                    'personas_promedio': float(dept_data.get('num_personas', 0))
                 })
             else:
-                feature['properties'].update({
+                feature_copy['properties'].update({
                     'departamento': dept_name,
                     'vulnerabilidad': 0,
                     'ingreso_per_capita': 0,
@@ -174,7 +227,7 @@ def geojson_bolivia():
                     'personas_promedio': 0
                 })
         
-        features_with_data.append(feature)
+        features_with_data.append(feature_copy)
     
     return jsonify({
         "type": "FeatureCollection", 
@@ -353,44 +406,10 @@ def indicadores_clave():
 def get_rangos_indicadores():
     """Obtiene rangos dinámicos para todos los indicadores"""
     try:
-        processor = DataProcessor()
-        
-        if processor.departamentos_data is None:
+        if processor.rangos_indicadores is None:
             return jsonify({'error': 'No se pudieron cargar los datos'}), 500
-            
-        # Calcular rangos para vulnerabilidad
-        vuln_min = processor.departamentos_data['indice_vulnerabilidad'].min()
-        vuln_max = processor.departamentos_data['indice_vulnerabilidad'].max()
-        vuln_range = vuln_max - vuln_min
-        
-        # Calcular rangos para ingreso
-        ingreso_min = processor.departamentos_data['ingreso_per_capita'].min()
-        ingreso_max = processor.departamentos_data['ingreso_per_capita'].max()
-        ingreso_range = ingreso_max - ingreso_min
-        
-        # Calcular rangos para alfabetización
-        alfa_min = processor.departamentos_data['prop_alfabeta'].min()
-        alfa_max = processor.departamentos_data['prop_alfabeta'].max()
-        alfa_range = alfa_max - alfa_min
-        
-        return jsonify({
-            'vulnerabilidad': {
-                'muy_alto': vuln_min + vuln_range * 0.75,
-                'alto': vuln_min + vuln_range * 0.5,
-                'medio': vuln_min + vuln_range * 0.25,
-                'bajo': vuln_min
-            },
-            'ingreso_per_capita': {
-                'alto': ingreso_min + ingreso_range * 0.75,
-                'medio': ingreso_min + ingreso_range * 0.25,
-                'bajo': ingreso_min
-            },
-            'alfabetizacion': {
-                'alto': alfa_min + alfa_range * 0.75,
-                'medio': alfa_min + alfa_range * 0.25,
-                'bajo': alfa_min
-            }
-        })
+
+        return jsonify(processor.rangos_indicadores)
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
